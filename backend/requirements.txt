@@ -1,0 +1,7 @@
+flask
+flask-cors
+yt-dlp
+brotli
+certifi
+requests
+curl-cffi

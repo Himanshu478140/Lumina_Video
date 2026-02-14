@@ -1,0 +1,21 @@
+# Backend
+backend/venv/
+backend/backend_debug.log
+backend/temp_cookies.txt
+backend/downloads/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# Root
+downloads/
+backend_debug.log
+temp_cookies.txt
+*.log
+~ 
+
+# OS specific files
+.DS_Store
+Thumbs.db
