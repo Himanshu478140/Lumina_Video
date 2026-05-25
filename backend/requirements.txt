@@ -5,3 +5,4 @@ brotli
 certifi
 requests
 curl-cffi
+cachetools
