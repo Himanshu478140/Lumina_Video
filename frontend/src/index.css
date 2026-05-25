@@ -1253,7 +1253,8 @@ body {
     flex-wrap: wrap;
   }
 
-  .nav-center {
+  .nav-center,
+  .nav-cta {
     display: none;
   }
 
@@ -1274,11 +1275,6 @@ body {
 
   .nav-brand-text {
     font-size: 1.1rem;
-  }
-
-  .nav-cta {
-    padding: 0.4rem 1rem;
-    font-size: 0.8rem;
   }
 
   .hero {

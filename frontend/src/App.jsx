@@ -744,7 +744,7 @@ function App() {
 
           <div className="footer-links-group">
             <h4>Connect</h4>
-            <a href="#" onClick={(e) => e.preventDefault()}>GitHub</a>
+            <a href="https://github.com/Himanshu478140/Lumina_Video.git" target="_blank" rel="noopener noreferrer">GitHub</a>
           </div>
         </div>
 
