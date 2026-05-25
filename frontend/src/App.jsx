@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Particles } from './Particles';
 import { AuroraText } from './AuroraText';
-import { Backlight } from './Backlight';
+import { Particles } from './Particles';
 
 /* ===== SVG ICONS ===== */
 const Icons = {
@@ -435,8 +434,7 @@ function App() {
 
       {/* ===== HERO ===== */}
       <section className="hero" id="hero">
-        <Particles className="particles-background" quantity={25} color="#5b5bd6" />
-
+        <Particles className="particles-background" quantity={15} color="#5b5bd6" />
         <h1>
           Video <AuroraText>Downloader</AuroraText><br />
         </h1>
@@ -446,186 +444,18 @@ function App() {
         </p>
 
         {/* Downloader Card */}
-        <Backlight blur={60} className="w-full max-w-[620px]">
-          <div className="downloader-card">
-            <div className="input-group">
-              <div className="input-link-icon">
-                <Icons.Link />
-              </div>
-              <input
-                type="text"
-                placeholder="Paste your video URL here..."
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && fetchInfo()}
-                id="url-input"
-              />
-              <button className="btn-primary" onClick={fetchInfo} disabled={loading} id="fetch-btn">
-                {loading ? <span className="loader"></span> : <><Icons.Download /> Download</>}
-              </button>
-            </div>
-
-            {/* Platform Hint UI */}
-            {platformHint && platformHint.name !== 'other' && !videoInfo && !loading && (
-              <div className={`platform-hint ${platformHint.experimental ? 'experimental' : ''}`}>
-                {platformHint.name === 'youtube' && <Icons.YouTube />}
-                {platformHint.name === 'instagram' && <Icons.Instagram />}
-                {platformHint.name === 'tiktok' && <Icons.TikTok />}
-                {platformHint.name === 'facebook' && <Icons.Facebook />}
-                {platformHint.name === 'pinterest' && <Icons.Sparkles />}
-                <span>{platformHint.display}</span>
-                {platformHint.experimental && <span className="experimental-tag">(Experimental)</span>}
-              </div>
-            )}
-            {platformHint && platformHint.name === 'other' && !videoInfo && !loading && (
-              <div className="unsupported-hint">
-                This site may not be supported. We'll still try to extract it!
-              </div>
-            )}
-
-
-
-            {/* Error */}
-            {error && <div className="error-msg">{error}</div>}
-
-            {/* Loading Skeleton */}
-            {loading && (
-              <div className="skeleton-container">
-                <div className="skeleton skeleton-thumbnail"></div>
-                <div className="skeleton-row">
-                  <div className="skeleton skeleton-btn"></div>
-                  <div className="skeleton skeleton-btn"></div>
-                </div>
-              </div>
-            )}
-
-            {/* Redesigned Progress */}
-            {downloading && downloadProgress && (
-              <div className="progress-redesigned">
-                <div className="progress-top-row">
-                  <span className="progress-percent">{isCancelling ? '—' : Math.round(downloadProgress.percent) + '%'}</span>
-                  <span className="progress-stage">
-                    {isCancelling && 'Cancelling download...'}
-                    {!isCancelling && downloadProgress.stage === 'downloading' && 'Downloading...'}
-                    {!isCancelling && downloadProgress.stage === 'merging' && 'Merging audio & video...'}
-                    {!isCancelling && downloadProgress.stage === 'converting' && 'Converting to MP3...'}
-                    {!isCancelling && downloadProgress.stage === 'completed' && '✓ Complete'}
-                    {!isCancelling && downloadProgress.stage === 'starting' && 'Starting...'}
-                  </span>
-                </div>
-                <div className="progress-bar-track">
-                  <div
-                    className="progress-bar-fill"
-                    style={{ width: `${downloadProgress.percent}%`, backgroundColor: isCancelling ? '#dc3545' : '' }}
-                  />
-                </div>
-                <div className="progress-stats" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <span>Speed: {isCancelling ? '—' : (downloadProgress.speed || '—')}</span>
-                    <span style={{ marginLeft: '1rem' }}>ETA: {isCancelling ? '—' : (downloadProgress.eta || '—')}</span>
-                  </div>
-                  {downloadProgress.stage !== 'completed' && (
-                    <button
-                      onClick={handleCancel}
-                      disabled={isCancelling}
-                      className="cancel-btn"
-                      style={{
-                        background: 'none', border: 'none', color: '#dc3545', cursor: isCancelling ? 'default' : 'pointer',
-                        fontWeight: 600, fontSize: '0.85rem', opacity: isCancelling ? 0.5 : 1
-                      }}
-                    >
-                      {isCancelling ? 'Cancelling...' : 'Cancel'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Video Preview + Quick Actions */}
-            {videoInfo && !downloading && (
-              <div className="video-preview">
-                <div className="thumbnail-container">
-                  <img src={videoInfo.thumbnail} alt={videoInfo.title} className="thumbnail-img" />
-                  {videoInfo.platform && videoInfo.platform.name !== 'other' && (
-                    <span className="thumbnail-badge">
-                      {videoInfo.platform.name === 'youtube' && <Icons.YouTube />}
-                      {videoInfo.platform.name === 'instagram' && <Icons.Instagram />}
-                      {videoInfo.platform.name === 'tiktok' && <Icons.TikTok />}
-                      {videoInfo.platform.name === 'facebook' && <Icons.Facebook />}
-                      {videoInfo.platform.name === 'pinterest' && <Icons.Sparkles />}
-                    </span>
-                  )}
-                  {videoInfo.is_hd && (
-                    <span className="thumbnail-hd-badge">HD</span>
-                  )}
-                </div>
-                <div className="video-info">
-                  <h3 className="video-title">{videoInfo.title}</h3>
-                  <div className="video-meta">
-                    {videoInfo.duration && <span>{formatDuration(videoInfo.duration)}</span>}
-                    {videoInfo.formats?.length > 0 && <span>{videoInfo.formats.length} formats</span>}
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="quick-actions">
-                    <button
-                      className="quick-action-btn"
-                      onClick={() => handleDownload('best', 'video')}
-                      id="download-best"
-                    >
-                      <Icons.Download /> Best Quality
-                    </button>
-                    <button
-                      className="quick-action-btn audio"
-                      onClick={() => handleDownload(null, 'audio')}
-                      id="download-audio"
-                    >
-                      <Icons.Music /> Audio Only
-                    </button>
-                  </div>
-
-                  {/* More Formats (collapsible, if multiple exist) */}
-                  {videoInfo.formats?.length > 1 && (
-                    <>
-                      <button
-                        className="more-formats-toggle"
-                        onClick={() => setShowMoreFormats(!showMoreFormats)}
-                      >
-                        {showMoreFormats ? '▾' : '▸'} More formats ({videoInfo.formats.length})
-                      </button>
-                      {showMoreFormats && (
-                        <div className="more-formats-panel">
-                          {videoInfo.formats.map((fmt) => (
-                            <div className="format-row" key={fmt.format_id}>
-                              <span className="format-row-label">
-                                {fmt.width && fmt.height ? `${fmt.width}×${fmt.height}` : fmt.resolution || 'Unknown Resolution'}
-                                {fmt.ext && ` • ${fmt.ext.toUpperCase()}`}
-                                {fmt.height >= 720 && <span className="hd-badge">HD</span>}
-                                {fmt.height >= 2160 && <span className="hd-badge">4K</span>}
-                              </span>
-                              <span className="format-row-ext">{fmt.ext?.toUpperCase()}</span>
-                              {fmt.filesize && (
-                                <span className="format-row-size">
-                                  {(fmt.filesize / (1024 * 1024)).toFixed(1)} MB
-                                </span>
-                              )}
-                              <button
-                                className="format-row-btn"
-                                onClick={() => handleDownload(fmt.format_id, 'video')}
-                              >
-                                <Icons.Download />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
+        <div className="w-full max-w-[620px]" style={{ margin: '0 auto', position: 'relative', zIndex: 10 }}>
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <a
+              href="https://github.com/Himanshu478140/Lumina_Video/releases/download/v1.0.0/LuminaVideo_Setup.exe"
+              className="btn-primary"
+              style={{ display: 'inline-flex', padding: '1.2rem 2.5rem', fontSize: '1.2rem', textDecoration: 'none', justifyContent: 'center', boxShadow: '0 8px 24px rgba(91, 91, 214, 0.25)' }}
+              download
+            >
+              <Icons.Download /> Download for Windows (v1.0.0)
+            </a>
           </div>
-        </Backlight>
+        </div>
       </section>
 
       {/* ===== FEATURES ===== */}
