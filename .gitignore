@@ -19,3 +19,9 @@ temp_cookies.txt
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# Build artifacts and large binaries
+dist/
+build/
+backend/ffmpeg/
+*.exe

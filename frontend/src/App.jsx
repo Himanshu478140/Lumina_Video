@@ -277,8 +277,9 @@ function App() {
   const faqRef = useReveal();
 
   const fetchInfo = async () => {
-    if (!url) return;
+    if (!url.trim()) return;
     setLoading(true);
+
     setError('');
     setVideoInfo(null);
     setShowMoreFormats(false);
@@ -356,17 +357,9 @@ function App() {
       clearInterval(pollInterval);
 
       if (response.ok) {
+        const data = await response.json();
         setDownloadProgress({ percent: 100, speed: 'Done', eta: '0s', stage: 'completed', status: 'completed' });
-        const blob = await response.blob();
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        const ext = outputFormat === 'audio' ? 'mp3' : 'mp4';
-        a.download = (videoInfo?.title || 'video') + '.' + ext;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(downloadUrl);
+        
         setTimeout(() => {
           setDownloading(false);
           setDownloadProgress(null);
@@ -379,11 +372,10 @@ function App() {
         setDownloading(false);
         setDownloadProgress(null);
         setCurrentDownloadId(null);
-        setIsCancelling(false);
       }
     } catch (err) {
-      clearInterval(pollInterval);
-      setError(isCancelling ? 'Download cancelled.' : 'Download error: ' + err.message);
+      console.error(err);
+      setError('An error occurred during download.');
       setDownloading(false);
       setDownloadProgress(null);
       setCurrentDownloadId(null);
@@ -410,24 +402,7 @@ function App() {
   return (
     <>
       {/* ===== NAVIGATION ===== */}
-      <nav className={`nav ${scrolled ? 'scrolled' : ''}`} id="nav">
-        <a href="#hero" className="nav-brand" onClick={(e) => { e.preventDefault(); scrollToHero(); }}>
-          <span className="nav-brand-logo">
-            <img src="/image.png" alt="Lumina Video Logo" onError={(e) => e.target.style.display = 'none'} />
-          </span>
-          <span className="nav-brand-text">Lumina Video</span>
-        </a>
-
-        <ul className="nav-center">
-          <li><a href="#features" className={activeSection === 'features' ? 'active' : ''} onClick={(e) => scrollToSection(e, 'features')}>Features</a></li>
-          <li><a href="#platforms" className={activeSection === 'platforms' ? 'active' : ''} onClick={(e) => scrollToSection(e, 'platforms')}>Platforms</a></li>
-          <li><a href="#faq" className={activeSection === 'faq' ? 'active' : ''} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a></li>
-        </ul>
-
-        <button className="nav-cta" onClick={scrollToHero}>
-          <Icons.Download /> Download App
-        </button>
-      </nav>
+      
 
       {/* ===== HERO ===== */}
       <section className="hero" id="hero">
@@ -623,188 +598,6 @@ function App() {
           </div>
         </Backlight>
       </section>
-
-      {/* ===== FEATURES ===== */}
-      <section className="features-section" id="features">
-        <div className="section">
-          <div className="section-header reveal" ref={featuresRef}>
-            <div className="section-label">Features</div>
-            <h2 className="section-title">Everything You Need,<br />Nothing You Don't</h2>
-            <p className="section-subtitle">
-              Built with performance and simplicity in mind. No bloat, no ads, just a powerful tool that works.
-            </p>
-          </div>
-
-          <RevealStagger className="features-grid">
-            {features.map((f, i) => (
-              <div className="feature-card" key={i}>
-                <div className="feature-icon">
-                  <f.icon />
-                </div>
-                <h3>{f.title}</h3>
-                <p>{f.desc}</p>
-              </div>
-            ))}
-          </RevealStagger>
-        </div>
-      </section>
-
-      {/* ===== PLATFORMS ===== */}
-      <section className="section" id="platforms">
-        <div className="section-header reveal" ref={platformsRef}>
-          <div className="section-label">Platforms</div>
-          <h2 className="section-title">Works With Your<br />Favorite Platforms</h2>
-          <p className="section-subtitle">
-            Support for all major video platforms and hundreds more.
-          </p>
-        </div>
-
-        <RevealStagger className="platforms-grid">
-          {platforms.map((p, i) => (
-            <div className="platform-card" key={i}>
-              <div className="platform-icon">
-                <p.icon />
-              </div>
-              <span>{p.name}</span>
-            </div>
-          ))}
-        </RevealStagger>
-      </section>
-
-      {/* ===== STATS ===== */}
-      <div className="stats-section" id="stats">
-        <RevealStagger className="stats-row" ref={statsRef}>
-          <div className="stat-item">
-            <h3>Multi-Platform</h3>
-            <p>Supported Sites</p>
-          </div>
-          <div className="stat-item">
-            <h3>4K</h3>
-            <p>Max Resolution</p>
-          </div>
-          <div className="stat-item">
-            <h3>100%</h3>
-            <p>Free Forever</p>
-          </div>
-          <div className="stat-item">
-            <h3>0</h3>
-            <p>Data Collected</p>
-          </div>
-        </RevealStagger>
-      </div>
-
-      {/* ===== FAQ ===== */}
-      <section className="section" id="faq">
-        <div className="section-header reveal" ref={faqRef}>
-          <div className="section-label">FAQ</div>
-          <h2 className="section-title">Frequently Asked<br />Questions</h2>
-        </div>
-
-        <div className="faq-list">
-          {faqs.map((f, i) => (
-            <FaqItem key={i} question={f.q} answer={f.a} />
-          ))}
-        </div>
-      </section>
-
-      {/* ===== CTA ===== */}
-      <section className="cta-section">
-        <h2>Ready to Download?</h2>
-        <p>Paste any video URL and start downloading in seconds.</p>
-        <button className="cta-btn" onClick={scrollToHero}>
-          Try It Now <Icons.ArrowRight />
-        </button>
-      </section>
-
-      {/* ===== FOOTER ===== */}
-      <footer className="footer">
-        <div className="footer-content">
-          <div className="footer-brand">
-            <a href="#hero" className="nav-brand" onClick={(e) => { e.preventDefault(); scrollToHero(); }}>
-              <span className="nav-brand-logo">
-                <img src="/image.png" alt="Lumina Video Logo" onError={(e) => e.target.style.display = 'none'} />
-              </span>
-              <span className="nav-brand-text">Lumina Video</span>
-            </a>
-            <p>A free, open-source video downloader built for speed, quality, and privacy.</p>
-          </div>
-
-          <div className="footer-links-group">
-            <h4>Product</h4>
-            <a href="#features">Features</a>
-            <a href="#platforms">Platforms</a>
-            <a href="#faq">FAQ</a>
-          </div>
-
-          <div className="footer-links-group">
-            <h4>Legal</h4>
-            <a href="#" onClick={(e) => { e.preventDefault(); setActiveModal('privacy'); }}>Privacy Policy</a>
-            <a href="#" onClick={(e) => { e.preventDefault(); setActiveModal('terms'); }}>Terms of Service</a>
-          </div>
-
-          <div className="footer-links-group">
-            <h4>Connect</h4>
-            <a href="https://github.com/Himanshu478140/Lumina_Video.git" target="_blank" rel="noopener noreferrer">GitHub</a>
-          </div>
-        </div>
-
-        <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} Lumina Video. All rights reserved.</span>
-          <span>Crafted by Himanshu</span>
-        </div>
-      </footer>
-
-      {activeModal && (
-        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setActiveModal(null)} aria-label="Close modal">
-              &times;
-            </button>
-            {activeModal === 'privacy' && (
-              <>
-                <h3>Privacy Policy</h3>
-                <div className="modal-body">
-                  <p><strong>Effective Date: May 24, 2026</strong></p>
-                  <p>At Lumina Video, your privacy comes first. This Privacy Policy explains how we handle, protect, and respect your information.</p>
-
-                  <h4>1. No Data Collection</h4>
-                  <p>We do not collect, log, or store any personal information, IP addresses, downloading history, or URLs entered on our service. All operations are strictly transient and private.</p>
-
-                  <h4>2. Cookies & Local Storage</h4>
-                  <p>Lumina Video may use local storage for essential site functionality. No tracking cookies or third-party analytics are used.</p>
-
-                  <h4>3. Third-Party Platforms</h4>
-                  <p>When you request a download, our system fetches media streams from the requested third-party platform (such as YouTube, TikTok, Pinterest, etc.). Your interaction with those platform streams is governed by their respective privacy policies.</p>
-
-                  <h4>4. Security</h4>
-                  <p>All connections to Lumina Video are secured using standard HTTPS encryption.</p>
-                </div>
-              </>
-            )}
-            {activeModal === 'terms' && (
-              <>
-                <h3>Terms of Service</h3>
-                <div className="modal-body">
-                  <p><strong>Effective Date: May 24, 2026</strong></p>
-                  <p>By using Lumina Video, you agree to these Terms of Service.</p>
-
-                  <h4>1. Fair & Personal Use Only</h4>
-                  <p>Lumina Video is designed solely for personal, informational, educational, and non-commercial purposes. You may not use this service to violate copyright laws or intellectual property rights.</p>
-
-                  <h4>2. User Responsibility</h4>
-                  <p>You assume sole legal responsibility for any content you download. You must ensure you have the explicit permission of the copyright owner, or that the media is in the public domain, before initiating a download.</p>
-
-                  <h4>3. Service Availability</h4>
-                  <p>Lumina Video is provided as available without guarantees of uninterrupted service, platform compatibility, or download speeds.</p>
-
-                  <h4>4. Liability Limitation</h4>
-                  <p>In no event shall Lumina Video or its open-source contributors be liable for any direct, indirect, or incidental damages arising out of the use or inability to use this service.</p>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </>
   );
 }

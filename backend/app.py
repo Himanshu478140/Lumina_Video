@@ -1,16 +1,36 @@
-from flask import Flask, request, jsonify, send_file, after_this_request
+from flask import Flask, request, jsonify, send_file, after_this_request, send_from_directory
 from flask_cors import CORS
 import yt_dlp
 import os
+import sys
 import re
 import time
 import tempfile
 import logging
 import threading
 
-app = Flask(__name__)
+# Determine absolute path to the static folder depending on if it's running via PyInstaller
+if getattr(sys, 'frozen', False):
+    # PyInstaller bundles the dist folder into _MEIPASS/frontend/dist
+    static_folder = os.path.join(sys._MEIPASS, "frontend", "dist")
+else:
+    # Running from source (backend folder), so frontend/dist is one level up
+    static_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist")
+
+app = Flask(__name__, static_folder=static_folder, static_url_path="")
 CORS(app)
 
+@app.route("/")
+def index():
+    return send_from_directory(app.static_folder, "index.html")
+
+# Serve other static files (like assets) and fallback to index.html for React Router
+@app.route("/<path:path>")
+def serve_static(path):
+    full_path = os.path.join(app.static_folder, path)
+    if os.path.exists(full_path) and os.path.isfile(full_path):
+        return send_from_directory(app.static_folder, path)
+    return send_from_directory(app.static_folder, "index.html")
 logging.basicConfig(filename='backend_debug.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s: %(message)s')
 
@@ -93,10 +113,15 @@ def build_base_ydl_opts(proxy=None, cookies_browser=None, cookie_content=None, c
     Build the shared yt-dlp options used by both /api/info and /api/download.
     Node.js is detected automatically from PATH — no js_runtimes dict needed.
     """
+    if getattr(sys, 'frozen', False):
+        ffmpeg_path = os.path.join(sys._MEIPASS, 'ffmpeg.exe')
+    else:
+        ffmpeg_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ffmpeg', 'ffmpeg.exe')
+
     opts = {
         'quiet': True,
         'no_warnings': True,
-        'ffmpeg_location': 'C:/ffmpeg/bin/ffmpeg.exe',
+        'ffmpeg_location': ffmpeg_path,
         'socket_timeout': 30,
         'nocheckcertificate': True,
     }
@@ -356,16 +381,25 @@ def download_video():
                 'percent': 100,
             }
 
-            @after_this_request
-            def remove_file(response):
-                try:
-                    import shutil
-                    shutil.rmtree(downloads_dir, ignore_errors=True)
-                except Exception as e:
-                    logging.error(f"Error removing temp dir: {e}")
-                return response
+            import shutil
+            user_downloads = os.path.join(os.path.expanduser('~'), 'Downloads')
+            os.makedirs(user_downloads, exist_ok=True)
+            
+            dest_path = os.path.join(user_downloads, attachment_name)
+            counter = 1
+            name, ext = os.path.splitext(attachment_name)
+            while os.path.exists(dest_path):
+                dest_path = os.path.join(user_downloads, f"{name} ({counter}){ext}")
+                counter += 1
+                
+            shutil.move(final_filename, dest_path)
+            shutil.rmtree(downloads_dir, ignore_errors=True)
 
-            return send_file(final_filename, as_attachment=True, download_name=attachment_name)
+            return jsonify({
+                "success": True,
+                "message": f"Saved to {dest_path}",
+                "path": dest_path
+            })
 
     except DownloadCancelled:
         import shutil

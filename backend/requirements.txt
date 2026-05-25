@@ -6,3 +6,5 @@ certifi
 requests
 curl-cffi
 cachetools
+pywebview
+pyinstaller
