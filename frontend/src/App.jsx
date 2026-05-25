@@ -424,9 +424,13 @@ function App() {
           <li><a href="#faq" className={activeSection === 'faq' ? 'active' : ''} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a></li>
         </ul>
 
-        <button className="nav-cta" onClick={scrollToHero}>
+        <a
+          href="https://github.com/Himanshu478140/Lumina_Video/releases/download/v1.0.0/LuminaVideo_Setup.exe"
+          className="nav-cta"
+          download
+        >
           <Icons.Download /> Download App
-        </button>
+        </a>
       </nav>
 
       {/* ===== HERO ===== */}
